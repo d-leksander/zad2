@@ -1,30 +1,29 @@
 package controllers
 
-// import models.{Category, CategoryRepository, Product, ProductRepository}
 import javax.inject._
-import play.api._
+import models.ProductRepository
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-
+import scala.concurrent.ExecutionContext
 /**
  * This controller creates an `Action` to handle HTTP requests to the
  * application's home page.
  */
 @Singleton
-class HomeController @Inject()()(val controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends BaseController {
+class HomeController @Inject()(productRepository: ProductRepository, cc: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index())
+  /**
+   * Create an Action to render an HTML page with a welcome message.
+   * The configuration in the `routes` file means that this method
+   * will be called when the application receives a `GET` request with
+   * a path of `/`.
+   */
+  def index = Action {
+    Ok(views.html.index("APP IS READY"))
   }
-
-  def search(query: String) = Action { implicit request: Request[AnyContent] =>
-    Ok(s"Wyszukales: $query")
-  }
-
-  def contact() = Action { implicit request: Request[AnyContent] =>
-    Ok(s"Kontakt")
+  def getProducts: Action[AnyContent] = Action.async { implicit request =>
+    val products = productRepository.list()
+    products.map( products => Ok(views.html.products(products)))
   }
 
 }

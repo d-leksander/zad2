@@ -1,47 +1,35 @@
 package controllers
-
-import models.{Category, CategoryRepository, SubCategory, SubCategoryRepository}
 import javax.inject._
 import play.api._
 import play.api.mvc._
 
+import javax.inject.Inject
+import play.api.mvc.{AbstractController, ControllerComponents}
+import models.{Category, CategoryRepository}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
-@Singleton
-class CategoryController @Inject()(categoryRepo: CategoryRepository, subCategoryRepo: SubCategoryRepository)(val controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends BaseController {
+class CategoryController @Inject()(categoryRepository: CategoryRepository, cc: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  def categories(): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
-    val kategorie = categoryRepo.list()
-    kategorie.map(cat => {
-      Ok(s"Kategorie: $cat")
-    })
+
+  def getAll = {
+    Action.async { implicit request: Request[AnyContent] =>
+      val kat = categoryRepository.list()
+      kat.map(kat => {
+        Ok(s"Kat $kat")
+      })
+
+    }
   }
-
-  def category(cat: String) = Action.async { implicit request: Request[AnyContent] =>
-    val kategoria = categoryRepo.getById(cat.toInt)
-    kategoria.map(cat => {
-      val test = cat.name
-      Ok(s"Kategoria: $test")
-    })
-  }
-
-  def subcategories(): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
-    val podkategorie = subCategoryRepo.list()
-    podkategorie.map(cat => {
-      Ok(s"Podkategorie: $cat")
-    })
-  }
-
-  def subcategory(cat: String) = Action.async { implicit request: Request[AnyContent] =>
-    val podkategoria = subCategoryRepo.getById(cat.toInt)
-    podkategoria.map(cat => {
-      val test = cat.name
-      Ok(s"Podkategoria: $test")
-    })
-  }
+    def showCategoryId(category: String): Action[AnyContent] = {
+      Action.async { implicit request: Request[AnyContent] =>
+        categoryRepository.getCategoryById(category.toInt).map {
+          category => Ok("Show category action")
+        }
+      }
+    }
 }
+
+
+
+
+

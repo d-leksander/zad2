@@ -1,30 +1,40 @@
 package controllers
 
+import javax.inject.Inject
+import play.api.mvc.{AbstractController, ControllerComponents}
 import models.{User, UserRepository}
-import javax.inject._
-import play.api._
-import play.api.mvc._
+import models.{Admin, AdminRepository}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
-@Singleton
-class UserController @Inject()(userRepo: UserRepository)(val controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends BaseController {
-  def users() = Action.async { implicit request: Request[AnyContent] =>
-  val usrs = userRepo.list()
-    usrs.map(cat => {
-      Ok(s"Uzytkownicy: $cat")
+class UserController @Inject()(userRepository: UserRepository, adminRepository: AdminRepository, cc: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
+
+
+  def createUser = Action {
+    Ok(views.html.index("createUser action"))
+  }
+  def createAdmin = Action {
+    Ok(views.html.index("createAdmin action"))
+  }
+
+  def allUsers(id: Int) = Action.async { implicit request =>
+    val us = userRepository.list()
+    us.map(us => {
+      Ok(s"Users: $us")
+    })
+  }
+  def adminList(id: Int) = Action.async { implicit request =>
+    val admin = adminRepository.list()
+    admin.map(admin => {
+      Ok(s"AdminsList: $admin")
     })
   }
 
-  def user(id: String) = Action.async { implicit request: Request[AnyContent] =>
-    val usr = userRepo.getById(id.toInt)
-    usr.map(cat => {
-         Ok(s"Uzytkownik: $cat")
-    })
+  def updateUser(id: Int) = Action {
+    Ok(views.html.index("This is  updateUser action"))
   }
+  def deleteUser()(id: Int) = Action {
+    Ok(views.html.index("This is deleteUser action"))
+  }
+
 }

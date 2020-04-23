@@ -4,10 +4,20 @@
 # ~~~~
 
 # An example controller showing a sample home page
+
+GET     /products                   controllers.HomeController.getProducts
+GET     /product/:id                controllers.HomeController.getProduct(id: Long)
+GET     /delete/:id                 controllers.HomeController.delete(id: Long)
+
+GET     /                           controllers.HomeController.index
+GET     /addproduct                 controllers.HomeController.addProduct
+POST    /addproducthandle           controllers.HomeController.addProductHandle
+GET     /updateproduct/:id          controllers.HomeController.updateProduct(id: Long)
+POST    /updateproducthandle        controllers.HomeController.updateProductHandle
 GET     /                           controllers.HomeController.index
 GET     /search                     controllers.HomeController.search(query)
-GET     /products                   controllers.ProductController.products
-GET     /products/:id               controllers.ProductController.product(id: Int)
+#GET     /products                   controllers.ProductController.products
+#GET     /products/:id               controllers.ProductController.product(id: Int)
 GET     /addProduct                 controllers.ProductController.addProduct
 POST    /addProductHandle           controllers.ProductController.addProductHandle
 GET     /updateProduct/:id          controllers.ProductController.updateProduct(id: Int)

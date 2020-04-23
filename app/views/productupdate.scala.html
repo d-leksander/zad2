@@ -1,6 +1,6 @@
 @import scala.concurrent.{ExecutionContext, Future}
 
-@(product: Form[UpdateProductForm], result: (Seq[Category], Seq[SubCategory], Seq[Manufacturer]))(implicit request: MessagesRequestHeader, flash: Flash)
+@(product: Form[UpdateProductForm],  category: (Seq[Category]), types: (Seq[Types]), delivery: (Seq[Delivery]), opinion: (Seq[Opinion]))(implicit request: MessagesRequestHeader, flash: Flash)
 
 @import helper._
 @flash.get("success").getOrElse("")
@@ -12,40 +12,42 @@
 @inputText(product("name"))
 @inputText(product("description"))
 @inputText(product("price"))
-@inputText(product("amount"))
+@inputText(product("category"))
 
-<select name="manufacturer" id="manufacturer">
-    @for(man <- result._3){
-        @if(man.id.toString==product("manufacturer").value.getOrElse(0)) {
-            <option value="@man.id" selected>@man.name</option>
-        }
-        else{
-            <option value="@man.id">@man.name</option>
-        }
-    }
-</select>
 
 <select name="category" id="category">
-    @for(cat <- result._1){
-        @if(cat.id.toString==product("category").value.getOrElse(0)) {
-            <option value="@cat.id" selected>@cat.name</option>
+    @for(cat <- category){
+        @if(cat.category_id.toString==product("category").value.getOrElse(0)) {
+            <option value="@cat.category_id" selected>@cat.category_name</option>
         }
         else{
-            <option value="@cat.id">@cat.name</option>
+            <option value="@cat.category_id">@cat.category_name</option>
         }
     }
 </select>
 
-<select name="subcategory" id="subcategory">
-    @for(subcat <- result._2){
-        @if(subcat.id.toString==product("subcategory").value.getOrElse(0)) {
-            <option value="@subcat.id" selected>@subcat.name</option>
+
+<select name="types" id="types">
+    @for(typ <- types){
+        @if(typ.id.toString==product("subcategory").value.getOrElse(0)) {
+            <option value="@typ.id" selected>@typ.type_field</option>
         }
         else{
-            <option value="@subcat.id">@subcat.name</option>
+            <option value="@typ.id">@typ.type_field</option>
         }
     }
 </select>
+
+    <select name="delivery" id="delivery">
+    @for(dev <- delivery){
+        @if(dev.id.toString==product("delivery").value.getOrElse(0)) {
+            <option value="@dev.id" selected>@dev.name</option>
+        }
+        else{
+        <option value="@dev.id">@dev.name</option>
+        }
+    }
+    </select>
 
 <div class="buttons">
     <input type="submit" value="Update Product"/>

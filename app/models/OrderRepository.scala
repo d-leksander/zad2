@@ -1,105 +1,51 @@
 package models
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
-import scala.concurrent.{ Future, ExecutionContext }
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class OrderRepository @Inject() (dbConfigProvider: DatabaseConfigProvider, val userRepository: UserRepository, val paymentRepository: PaymentRepository, val deliveryRepository: DeliveryRepository)(implicit ec: ExecutionContext) {
+class OrderRepository @Inject()(dbConfigProvider: DatabaseConfigProvider, val userRepository: UserRepository)(implicit ec: ExecutionContext) {
+
   val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
   import profile.api._
 
-
-  class OrderTable(tag: Tag) extends Table[Order](tag, "order_") {
-
-    /** The ID column, which is the primary key, and auto incremented */
-    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-
-    /** The name column */
-    def price = column[Int]("price")
-
-    /** The age column */
-    def date = column[String]("date")
-
-    def address = column[String]("address")
-
-    def sent = column[Int]("sent")
-
-    def user = column[Int]("user")
-
-    def payment = column[Int]("payment")
-
-    def delivery = column[Int]("delivery")
-
-    def user_fk = foreignKey("usr_fk", user, usr)(_.id)
-
-    def payment_fk = foreignKey("pmt_fk", payment, pmt)(_.id)
-
-    def delivery_fk = foreignKey("dlv_fk", delivery, dlv)(_.id)
-
-    def * = (id, price, date, address, sent, user, payment, delivery) <> ((Order.apply _).tupled, Order.unapply)
-
-  }
-
-  /**
-   * The starting point for all queries on the people table.
-   */
-
   import userRepository.UserTable
-  import paymentRepository.PaymentTable
-  import deliveryRepository.DeliveryTable
+
+  class OrderTable(tag: Tag) extends Table[Order](tag, "order") {
+
+    def order_id = column[Int]("pd_id", O.PrimaryKey, O.AutoInc)
+    def user_id = column[Int]("user_id")
+    def status = column[String]("status")
+    def date = column[String]("date")
+    def payment = column[Float]("price_total")
+    def user_fk = foreignKey("order_fkey", user_id, us)(_.user_id)
+
+
+    def * = (order_id, user_id, status, date, payment) <> ((Order.apply _).tupled, Order.unapply)
+  }
 
   val order = TableQuery[OrderTable]
+  private val us = TableQuery[UserTable]
 
-  private val usr = TableQuery[UserTable]
-
-  private val pmt = TableQuery[PaymentTable]
-
-  private val dlv = TableQuery[DeliveryTable]
-
-
-  /**
-   * Create a person with the given name and age.
-   *
-   * This is an asynchronous operation, it will return a future of the created person, which can be used to obtain the
-   * id for that person.
-   */
-  def create(price: Int, date: String, address: String, sent: Int, user: Int, payment: Int, delivery: Int): Future[Order] = db.run {
-    (order.map(p => (p.price,p.date,p.address,p.sent,p.user,p.payment,p.delivery))
-      returning order.map(_.id)
-      into {case ((price,date,address,sent,user,payment,delivery),id) => Order(id,price,date,address,sent,user,payment,delivery)}
-      ) += (price, date, address, sent, user, payment, delivery)
+  def create(user_id: Int, status: String, date: String, payment: Float): Future[Order] = db.run {
+    (order.map(o => (o.user_id, o.date, o.status, o.payment))
+      returning order.map(_.order_id)
+      into { case ((user_id, status, date, payment), order_id) => Order(order_id, user_id, status, date, payment) }
+      ) += (user_id, status, date, payment)
   }
 
-  /**
-   * List all the people in the database.
-   */
   def list(): Future[Seq[Order]] = db.run {
     order.result
   }
-
-  // def getById(id: Int): Future[Order] = db.run {
-  //   order.filter(_.id === id).result.head
-  // }
-
-  def getByIdOption(id: Int): Future[Option[Order]] = db.run {
-    order.filter(_.id === id).result.headOption
+  def getById(id: Int): Future[Seq[Order]] = db.run {
+    order.filter(_.order_id === id).result
   }
-
-  def delete(id: Int): Future[Unit] = db.run(order.filter(_.id === id).delete).map(_ => ())
-
-  def update(id: Int, new_order: Order): Future[Unit] = {
-    val orderToUpdate: Order = new_order.copy(id)
-    db.run(order.filter(_.id === id).update(orderToUpdate)).map(_ => ())
+  def getByUserId(user_id: Int): Future[Seq[Order]] = db.run {
+    order.filter(_.user_id === user_id).result
   }
-
-  def getById(id: Int): Future[Seq[(Order, User, Payment, Delivery)]] = db.run {
-    (for {
-      (((order, user), payment), delivery) <- order join usr on (_.user === _.id) join pmt on (_._1.payment === _.id) join dlv on (_._1._1.delivery === _.id)
-    } yield (order, user, payment, delivery)).result
-  }
-
 }

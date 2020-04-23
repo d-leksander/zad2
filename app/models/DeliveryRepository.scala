@@ -14,19 +14,21 @@ class DeliveryRepository @Inject() (dbConfigProvider: DatabaseConfigProvider)(im
   import profile.api._
 
   class DeliveryTable(tag: Tag) extends Table[Delivery](tag, "delivery") {
+
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name")
-    def price = column[Int]("price")
-    def * = (id, name, price) <> ((Delivery.apply _).tupled, Delivery.unapply)
+    def value = column[Int]("value")
+    def status = column[Int]("status")
+    def * = (id, name, value, status) <> ((Delivery.apply _).tupled, Delivery.unapply)
   }
 
   val delivery = TableQuery[DeliveryTable]
 
-  def create(name: String, price: Int): Future[Delivery] = db.run {
-    (delivery.map(c => (c.name, c.price))
+  def create(name: String, value: Int, status: Int): Future[Delivery] = db.run {
+    (delivery.map(d => (d.name, d.value, d.status))
       returning delivery.map(_.id)
-      into {case((name, price), id) => Delivery(id, name, price)}
-      ) += (name, price)
+      into {case((name, value, status), id) => Delivery(id, name, value, status)}
+      ) += (name, value, status)
   }
 
   def list(): Future[Seq[Delivery]] = db.run {

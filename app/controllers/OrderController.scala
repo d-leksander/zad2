@@ -1,64 +1,41 @@
 package controllers
-
-import models.{Order, OrderRepository, OrderDetail, OrderDetailRepository, Delivery, DeliveryRepository, Payment, PaymentRepository}
 import javax.inject._
 import play.api._
 import play.api.mvc._
-
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
+import models.{Order, OrderRepository}
+import models.{Delivery, DeliveryRepository}
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
-@Singleton
-class OrderController @Inject()(orderRepo: OrderRepository, orderDetailRepo: OrderDetailRepository, deliveryRepo: DeliveryRepository, paymentRepo: PaymentRepository)(val controllerComponents: ControllerComponents)(implicit ec: ExecutionContext) extends BaseController {
-  def orders() = Action.async { implicit request: Request[AnyContent] =>
-  val ordrs = orderRepo.list()
-    ordrs.map(cat => {
-      Ok(s"Zamowienia: $cat")
+class OrderController @Inject()(orderRepository: OrderRepository, deliveryRepository: DeliveryRepository, cc: ControllerComponents)(implicit ec: ExecutionContext) extends AbstractController(cc) {
+
+  def addOrder = Action {
+    Ok("AddOrder")
+
+    }
+
+  def orderList() = Action.async { implicit request: Request[AnyContent] =>
+    val ordlist = deliveryRepository.list()
+    ordlist.map(ordlist => {
+      Ok(s"Orderer: $ordlist")
     })
   }
 
-  def order(id: String) = Action.async { implicit request: Request[AnyContent] =>
-    val ord = orderRepo.getById(id.toInt)
-    val orderdetail = orderDetailRepo.getByOrderId(id.toInt)
-    val result = for{
-      r1 <- ord
-      r2 <- orderdetail
-    } yield (r1, r2)
-
-    result.map(c => {
-         Ok(s"Zamowienie: ${c._1}\nSzczegoly: ${c._2}")
+  def getOrderById(id: Int) = Action.async { implicit request: Request[AnyContent] =>
+    val ord = orderRepository.getById(id.toInt)
+    ord.map( ord => Ok(s"Orders $ord"))
+  }
+  def deliveriesList() = Action.async { implicit request: Request[AnyContent] =>
+    val deliver = deliveryRepository.list()
+    deliver.map(delivery => {
+      Ok(s"Deliveries: $deliver")
     })
   }
-
-  def deliveries() = Action.async { implicit request: Request[AnyContent] =>
-  val dlvs = deliveryRepo.list()
-    dlvs.map(cat => {
-      Ok(s"Rodzaje dostaw: $cat")
-    })
+  def getDeliveryById(id: Int) = Action.async { implicit request: Request[AnyContent] =>
+    val deliverid = orderRepository.getById(id.toInt)
+    deliverid.map( deliverid => Ok(s"Orders $deliverid"))
   }
 
-  def payments() = Action.async { implicit request: Request[AnyContent] =>
-  val pmts = paymentRepo.list()
-    pmts.map(cat => {
-      Ok(s"Rodzaje platnosci: $cat")
-    })
-  }
 
-  def delivery(id: String) = Action.async { implicit request: Request[AnyContent] =>
-    val dlv = deliveryRepo.getById(id.toInt)
-    dlv.map(c => {
-         Ok(s"Dostawa: $c")
-    })
-  }
 
-  def payment(id: String) = Action.async { implicit request: Request[AnyContent] =>
-    val pmt = paymentRepo.getById(id.toInt)
-    pmt.map(c => {
-         Ok(s"Platnosc: $c")
-    })
-  }
 }

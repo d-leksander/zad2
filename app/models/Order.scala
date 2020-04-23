@@ -1,8 +1,9 @@
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json._
 
-case class Order(id: Int, price: Int, date: String, address: String, sent: Int, user: Int, payment: Int, delivery: Int)
+
+case class Order(order_id: Int, user_id:Int, status: String, date: String, payment: Float)
 
 object Order {
   implicit val orderFormat = Json.format[Order]
